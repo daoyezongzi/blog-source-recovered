@@ -1,6 +1,6 @@
-version: 5.3.0
+﻿version: 5.3.0
 variant: default
-logo: /img/logo.svg
+logo: ""
 head:
     favicon: /img/favicon.svg
     manifest:
@@ -28,11 +28,6 @@ navbar:
         标签: /tags
         友链: /links
         关于: /about
-    links:
-        搜索:
-            icon: fas fa-search
-            url: javascript:;
-            class: search
 footer:
     links:
         Creative Commons:
@@ -121,3 +116,5 @@ plugins:
                 text: '#838391'
             button:
                 background: '#4b81e8'
+
+
