@@ -1,0 +1,123 @@
+version: 5.3.0
+variant: default
+logo: /img/logo.svg
+head:
+    favicon: /img/favicon.svg
+    manifest:
+        name: 未寄出的信
+        short_name: 未寄出的信
+        start_url: /
+        theme_color: '#3273dc'
+        background_color: '#ffffff'
+        display: standalone
+        icons:
+            -
+                src: /img/favicon.svg
+                sizes: 512x512
+                type: image/svg+xml
+    open_graph:
+        type: blog
+        image: /img/og_image.png
+    structured_data:
+        enabled: true
+navbar:
+    menu:
+        首页: /
+        归档: /archives
+        分类: /categories
+        标签: /tags
+        友链: /links
+        关于: /about
+    links:
+        搜索:
+            icon: fas fa-search
+            url: javascript:;
+            class: search
+footer:
+    links:
+        Creative Commons:
+            icon: fab fa-creative-commons
+            url: https://creativecommons.org/
+        Attribution 4.0 International:
+            icon: fab fa-creative-commons-by
+            url: https://creativecommons.org/licenses/by/4.0/
+        Download on GitHub:
+            icon: fab fa-github
+            url: https://github.com/ppoffice/hexo-theme-icarus
+article:
+    highlight:
+        clipboard: true
+        fold: unfolded
+search:
+    type: insight
+comment:
+    type: disqus
+    shortname: daoyezongzi
+share:
+    type: sharejs
+    sites:
+        - weibo
+        - qq
+        - wechat
+        - qzone
+        - linkedin
+        - facebook
+        - twitter
+        - google
+sidebar:
+    left:
+        sticky: true
+    right:
+        sticky: true
+widgets:
+    -
+        position: left
+        type: profile
+        author: 稻叶粽子
+        author_title: 量化金融专业｜摄影师｜AI 绘画、翻唱丨贝斯手｜FPS 爱好者｜文学、哲学爱好者丨技术栈学习中
+        location: 浙江工业大学 / ZJUT
+        avatar: /img/avatar.jpg
+        avatar_rounded: true
+        follow_link: https://github.com/daoyezongzi
+        social_links:
+            Github:
+                icon: fab fa-github
+                url: https://github.com/daoyezongzi
+            Bilibili:
+                icon: fas fa-tv
+                url: https://space.bilibili.com/637788626?spm_id_from=333.1387.fans.user_card.click
+            RSS:
+                icon: fas fa-rss
+                url: /
+    -
+        position: left
+        type: categories
+    -
+        position: left
+        type: recent_posts
+    -
+        position: left
+        type: archives
+    -
+        position: left
+        type: tags
+plugins:
+    cookie_consent:
+        type: cookie_consent
+        theme: edgeless
+        position: bottom-left
+        static: false
+        content:
+            message: 此网站使用Cookie来改善您的体验。
+            dismiss: 知道了！
+            allow: 允许使用Cookie
+            deny: 拒绝
+            link: 了解更多
+            policy: Cookie政策
+            href: https://www.cookiesandyou.com/
+        palette:
+            popup:
+                background: '#edeff5'
+                text: '#838391'
+            button:
+                background: '#4b81e8'
