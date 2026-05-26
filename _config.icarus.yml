@@ -97,24 +97,5 @@ widgets:
         position: left
         type: tags
 plugins:
-    cookie_consent:
-        type: cookie_consent
-        theme: edgeless
-        position: bottom-left
-        static: false
-        content:
-            message: 此网站使用Cookie来改善您的体验。
-            dismiss: 知道了！
-            allow: 允许使用Cookie
-            deny: 拒绝
-            link: 了解更多
-            policy: Cookie政策
-            href: https://www.cookiesandyou.com/
-        palette:
-            popup:
-                background: '#edeff5'
-                text: '#838391'
-            button:
-                background: '#4b81e8'
 
 
