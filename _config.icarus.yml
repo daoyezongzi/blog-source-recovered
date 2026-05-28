@@ -96,6 +96,5 @@ widgets:
     -
         position: left
         type: tags
-plugins:
-
+plugins: {}
 
