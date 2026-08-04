@@ -10,3 +10,4 @@ hexo.extend.injector.register('body_end', `<script src="/js/page-transition.js" 
 hexo.extend.injector.register('body_end', `<script src="/js/category-tree.js" defer></script>`);
 hexo.extend.injector.register('body_end', `<script src="/js/share-sites.js" defer></script>`);
 hexo.extend.injector.register('body_end', `<script src="/js/site-info-widget.js" defer></script>`);
+hexo.extend.injector.register('body_end', `<script src="/js/left-sidebar-sticky.js" defer></script>`);
