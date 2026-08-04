@@ -41,6 +41,7 @@ jobs:
           external_repository: daoyezongzi/daoyezongzi.github.io
           publish_branch: main
           publish_dir: ./public
+          cname: daoyezongzi.org
           user_name: github-actions[bot]
           user_email: 41898282+github-actions[bot]@users.noreply.github.com
           commit_message: "deploy: ${{ github.repository }}@${{ github.sha }}"
