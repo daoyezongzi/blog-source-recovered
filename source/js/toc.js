@@ -55,8 +55,8 @@
       if (headingToMenu.has($heading)) {
         const $menu = headingToMenu.get($heading);
         $menu.setAttribute('data-href', $menu.getAttribute('href'));
-        $menu.setAttribute('href', 'javascript:;');
-        $menu.addEventListener('click', () => {
+        $menu.addEventListener('click', (event) => {
+          event.preventDefault();
           if (typeof $heading.scrollIntoView === 'function') {
             $heading.scrollIntoView({ behavior: 'smooth' });
           }

@@ -23,7 +23,8 @@
     .on('click', '.searchbox .searchbox-mask', () => {
       $('.searchbox').removeClass('show');
     })
-    .on('click', '.searchbox-close', () => {
+    .on('click', '.searchbox-close', (event) => {
+      event.preventDefault();
       $('.searchbox').removeClass('show');
     })
     .on(

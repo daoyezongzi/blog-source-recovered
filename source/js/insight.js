@@ -4,12 +4,20 @@
  */
 // eslint-disable-next-line no-unused-vars
 function loadInsight(config, translation) {
+  const MAX_QUERY_LENGTH = 128;
+  const MAX_KEYWORDS = 10;
+  const MAX_KEYWORD_LENGTH = 64;
   const $main = $('.searchbox');
   const $input = $main.find('.searchbox-input');
   const $container = $main.find('.searchbox-body');
 
   function section(title) {
-    return $('<section>').addClass('searchbox-result-section').append($('<header>').text(title));
+    const element = document.createElement('section');
+    element.className = 'searchbox-result-section';
+    const header = document.createElement('header');
+    header.textContent = typeof title === 'string' ? title : '';
+    element.appendChild(header);
+    return element;
   }
 
   function merge(ranges) {
@@ -27,18 +35,21 @@ function loadInsight(config, translation) {
     return result;
   }
 
-  function findAndHighlight(text, matches, maxlen) {
-    if (!Array.isArray(matches) || !matches.length || !text) {
-      return maxlen ? text.slice(0, maxlen) : text;
+  function appendHighlightedText(parent, text, matches, maxlen) {
+    const value = typeof text === 'string' ? text : '';
+    if (!Array.isArray(matches) || !matches.length || !value) {
+      parent.appendChild(document.createTextNode(maxlen ? value.slice(0, maxlen) : value));
+      return;
     }
-    const testText = text.toLowerCase();
+    const testText = value.toLowerCase();
     const indices = matches
       .map((match) => {
-        const index = testText.indexOf(match.toLowerCase());
-        if (!match || index === -1) {
+        const keyword = typeof match === 'string' ? match : '';
+        const index = testText.indexOf(keyword.toLowerCase());
+        if (!keyword || index === -1) {
           return null;
         }
-        return [index, index + match.length];
+        return [index, index + keyword.length];
       })
       .filter((match) => {
         return match !== null;
@@ -48,92 +59,154 @@ function loadInsight(config, translation) {
       });
 
     if (!indices.length) {
-      return text;
+      parent.appendChild(document.createTextNode(maxlen ? value.slice(0, maxlen) : value));
+      return;
     }
 
-    let result = '';
-    let last = 0;
     const ranges = merge(indices);
-    const sumRange = [ranges[0][0], ranges[ranges.length - 1][1]];
-    if (maxlen && maxlen < sumRange[1]) {
-      last = sumRange[0];
-    }
+    const firstMatch = ranges[0][0];
+    const end = maxlen ? Math.min(value.length, firstMatch + maxlen) : value.length;
+    let last = maxlen && maxlen < ranges[ranges.length - 1][1]
+      ? firstMatch
+      : 0;
 
     for (let i = 0; i < ranges.length; i++) {
       const range = ranges[i];
-      result += text.slice(last, Math.min(range[0], sumRange[0] + maxlen));
-      if (maxlen && range[0] >= sumRange[0] + maxlen) {
+      if (range[0] >= end) {
         break;
       }
-      result += '<em>' + text.slice(range[0], range[1]) + '</em>';
-      last = range[1];
-      if (i === ranges.length - 1) {
-        if (maxlen) {
-          result += text.slice(range[1], Math.min(text.length, sumRange[0] + maxlen + 1));
-        } else {
-          result += text.slice(range[1]);
-        }
+      if (range[0] > last) {
+        parent.appendChild(document.createTextNode(value.slice(last, Math.min(range[0], end))));
+      }
+      const matchEnd = Math.min(range[1], end);
+      if (matchEnd > range[0]) {
+        const emphasis = document.createElement('em');
+        emphasis.textContent = value.slice(range[0], matchEnd);
+        parent.appendChild(emphasis);
+      }
+      last = Math.max(last, range[1]);
+      if (last >= end) {
+        break;
       }
     }
 
-    return result;
+    if (last < end) {
+      parent.appendChild(document.createTextNode(value.slice(last, end)));
+    }
   }
 
-  function searchItem(icon, title, slug, preview, url) {
-    title = title != null && title !== '' ? title : translation.untitled;
-    const subtitle = slug
-      ? '<span class="searchbox-result-title-secondary">(' + slug + ')</span>'
-      : '';
+  function getSafeUrl(value) {
+    if (typeof value !== 'string' || !value.trim()) {
+      return '#';
+    }
+    try {
+      const resolved = new URL(value, window.location.href);
+      if (resolved.protocol !== 'http:' && resolved.protocol !== 'https:') {
+        return '#';
+      }
+      return resolved.href;
+    } catch (_error) {
+      return '#';
+    }
+  }
 
-    return `<a class="searchbox-result-item" href="${url}">
-            <span class="searchbox-result-icon">
-                <i class="fa fa-${icon}" />
-            </span>
-            <span class="searchbox-result-content">
-                <span class="searchbox-result-title">
-                    ${title}
-                    ${subtitle}
-                </span>
-                ${preview ? '<span class="searchbox-result-preview">' + preview + '</span>' : ''}
-            </span>
-        </a>`;
+  function getSafeContentUrl(value) {
+    const resolved = getSafeUrl(value);
+    if (resolved === '#') {
+      return null;
+    }
+    try {
+      const url = new URL(resolved, window.location.href);
+      return url.origin === window.location.origin ? url.href : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
+  function searchItem(icon, title, slug, preview, url, keywords) {
+    const item = document.createElement('a');
+    item.className = 'searchbox-result-item';
+    item.href = getSafeUrl(url);
+
+    const iconContainer = document.createElement('span');
+    iconContainer.className = 'searchbox-result-icon';
+    const iconElement = document.createElement('i');
+    iconElement.className = 'fa fa-' + (icon === 'folder' || icon === 'tag' ? icon : 'file');
+    iconContainer.appendChild(iconElement);
+
+    const content = document.createElement('span');
+    content.className = 'searchbox-result-content';
+    const titleElement = document.createElement('span');
+    titleElement.className = 'searchbox-result-title';
+    const titleValue = title != null && title !== '' ? title : translation.untitled;
+    appendHighlightedText(titleElement, String(titleValue || ''), keywords);
+
+    if (slug) {
+      const subtitle = document.createElement('span');
+      subtitle.className = 'searchbox-result-title-secondary';
+      subtitle.appendChild(document.createTextNode('('));
+      appendHighlightedText(subtitle, String(slug), keywords);
+      subtitle.appendChild(document.createTextNode(')'));
+      titleElement.appendChild(subtitle);
+    }
+
+    content.appendChild(titleElement);
+    if (preview) {
+      const previewElement = document.createElement('span');
+      previewElement.className = 'searchbox-result-preview';
+      appendHighlightedText(previewElement, String(preview), keywords, 100);
+      content.appendChild(previewElement);
+    }
+
+    item.appendChild(iconContainer);
+    item.appendChild(content);
+    return item;
   }
 
   function sectionFactory(keywords, type, array) {
-    let $searchItems;
-    if (array.length === 0) return null;
+    if (!Array.isArray(array) || array.length === 0) return null;
     const sectionTitle = translation[type.toLowerCase()];
+    const element = section(sectionTitle);
     switch (type) {
       case 'POSTS':
       case 'PAGES':
-        $searchItems = array.map((item) => {
-          const title = findAndHighlight(item.title, keywords);
-          const text = findAndHighlight(item.text, keywords, 100);
-          return searchItem('file', title, null, text, item.link);
+        array.forEach((item) => {
+          element.appendChild(searchItem('file', item.title, null, item.text, item.link, keywords));
         });
         break;
       case 'CATEGORIES':
       case 'TAGS':
-        $searchItems = array.map((item) => {
-          const name = findAndHighlight(item.name, keywords);
-          const slug = findAndHighlight(item.slug, keywords);
-          return searchItem(type === 'CATEGORIES' ? 'folder' : 'tag', name, slug, null, item.link);
+        array.forEach((item) => {
+          element.appendChild(searchItem(
+            type === 'CATEGORIES' ? 'folder' : 'tag',
+            item.name,
+            item.slug,
+            null,
+            item.link,
+            keywords,
+          ));
         });
         break;
       default:
         return null;
     }
-    return section(sectionTitle).append($searchItems);
+    return element;
   }
 
   function parseKeywords(keywords) {
+    if (typeof keywords !== 'string') {
+      return [];
+    }
     return keywords
-      .split(' ')
+      .slice(0, MAX_QUERY_LENGTH)
+      .trim()
+      .split(/\s+/)
       .filter((keyword) => {
         return !!keyword;
       })
+      .slice(0, MAX_KEYWORDS)
       .map((keyword) => {
-        return keyword.toLowerCase();
+        return keyword.slice(0, MAX_KEYWORD_LENGTH).toLowerCase();
       });
   }
 
@@ -143,13 +216,16 @@ function loadInsight(config, translation) {
    * @param Array<String>     fields  Object's fields to find matches
    */
   function filter(keywords, obj, fields) {
+    if (!obj || typeof obj !== 'object') {
+      return false;
+    }
     const keywordArray = parseKeywords(keywords);
     const containKeywords = keywordArray.filter((keyword) => {
       const containFields = fields.filter((field) => {
         if (!Object.prototype.hasOwnProperty.call(obj, field)) {
           return false;
         }
-        if (obj[field].toLowerCase().indexOf(keyword) > -1) {
+        if (typeof obj[field] === 'string' && obj[field].toLowerCase().indexOf(keyword) > -1) {
           return true;
         }
         return false;
@@ -188,9 +264,9 @@ function loadInsight(config, translation) {
   function weight(keywords, obj, fields, weights) {
     let value = 0;
     parseKeywords(keywords).forEach((keyword) => {
-      const pattern = new RegExp(keyword, 'img'); // Global, Multi-line, Case-insensitive
+      const pattern = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'img'); // Global, Multi-line, Case-insensitive
       fields.forEach((field, index) => {
-        if (Object.prototype.hasOwnProperty.call(obj, field)) {
+        if (Object.prototype.hasOwnProperty.call(obj, field) && typeof obj[field] === 'string') {
           const matches = obj[field].match(pattern);
           value += matches ? matches.length * weights[index] : 0;
         }
@@ -219,10 +295,11 @@ function loadInsight(config, translation) {
   function search(json, keywords) {
     const weights = weightFactory(keywords);
     const filters = filterFactory(keywords);
-    const posts = json.posts;
-    const pages = json.pages;
-    const tags = json.tags;
-    const categories = json.categories;
+    const source = json && typeof json === 'object' ? json : {};
+    const posts = Array.isArray(source.posts) ? source.posts : [];
+    const pages = Array.isArray(source.pages) ? source.pages : [];
+    const tags = Array.isArray(source.tags) ? source.tags : [];
+    const categories = Array.isArray(source.categories) ? source.categories : [];
     return {
       posts: posts
         .filter(filters.post)
@@ -253,10 +330,12 @@ function loadInsight(config, translation) {
 
   function searchResultToDOM(keywords, searchResult) {
     $container.empty();
+    if (!$container[0]) return;
     for (const key in searchResult) {
-      $container.append(
-        sectionFactory(parseKeywords(keywords), key.toUpperCase(), searchResult[key]),
-      );
+      const resultSection = sectionFactory(parseKeywords(keywords), key.toUpperCase(), searchResult[key]);
+      if (resultSection) {
+        $container[0].appendChild(resultSection);
+      }
     }
   }
 
@@ -275,6 +354,7 @@ function loadInsight(config, translation) {
 
   function selectItemByDiff(value) {
     const $items = $.makeArray($container.find('.searchbox-result-item'));
+    if (!$items.length) return;
     let prevPosition = -1;
     $items.forEach((item, index) => {
       if ($(item).hasClass('active')) {
@@ -289,16 +369,24 @@ function loadInsight(config, translation) {
 
   function gotoLink($item) {
     if ($item && $item.length) {
-      location.href = $item.attr('href');
+      const url = getSafeUrl($item.attr('href'));
+      if (url !== '#') {
+        location.href = url;
+      }
     }
   }
 
-  $.getJSON(config.contentUrl, (json) => {
+  const contentUrl = getSafeContentUrl(config && config.contentUrl);
+  if (!contentUrl) {
+    return;
+  }
+
+  $.getJSON(contentUrl, (json) => {
     if (location.hash.trim() === '#insight-search') {
       $main.addClass('show');
     }
     $input.on('input', function () {
-      const keywords = $(this).val();
+      const keywords = String($(this).val() || '').slice(0, MAX_QUERY_LENGTH);
       searchResultToDOM(keywords, search(json, keywords));
     });
     $input.trigger('input');
@@ -321,6 +409,7 @@ function loadInsight(config, translation) {
       if (e.type !== 'click' && !touch) {
         return;
       }
+      e.preventDefault();
       $('.navbar-main').css('pointer-events', 'none');
       setTimeout(() => {
         $('.navbar-main').css('pointer-events', 'auto');

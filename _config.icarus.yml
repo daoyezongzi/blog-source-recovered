@@ -45,20 +45,8 @@ article:
         fold: unfolded
 search:
     type: insight
-comment:
-    type: disqus
-    shortname: daoyezongzi
-share:
-    type: sharejs
-    sites:
-        - weibo
-        - qq
-        - wechat
-        - qzone
-        - linkedin
-        - facebook
-        - twitter
-        - google
+# Third-party comment/share widgets stay disabled so generated pages do not
+# execute remote widget code or send reader metadata to external services.
 sidebar:
     left:
         sticky: true
@@ -98,3 +86,7 @@ widgets:
         type: tags
 plugins: {}
 
+providers:
+    cdn: jsdelivr
+    fontcdn: google
+    iconcdn: fontawesome

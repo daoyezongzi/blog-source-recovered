@@ -37,6 +37,11 @@ relative_link: false
 future: true
 syntax_highlighter: highlight.js
 
+# Treat post Markdown as text/Markdown only. Raw HTML is disabled so a future
+# post cannot introduce script, event-handler, iframe, or javascript: payloads.
+markdown_it_plus:
+  html: false
+
 index_generator:
   path: ""
   per_page: 3
