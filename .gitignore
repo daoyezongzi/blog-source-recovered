@@ -5,3 +5,12 @@ db.json
 .cache/
 .npm-cache/
 _config.icarus.yml.*
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+.secrets/
